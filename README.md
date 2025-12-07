@@ -22,3 +22,9 @@ Sistema completo de livraria online desenvolvido em Java para a disciplina de Pr
 - Programação Orientada a Objetos
 
 ## 📁 Estrutura do Projeto
+src/
+├── app/ # Classe principal e menus
+├── model/ # Entidades (Livro, Cliente, Pedido, etc)
+├── repository/ # Camada de acesso a dados
+├── service/ # Regras de negócio
+└── util/ # Utilitários
