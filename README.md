@@ -63,3 +63,5 @@ Desenvolvido para a disciplina **Programação II**, com foco em **POO, modulari
 ---
 
 # 🏗️ Arquitetura do Projeto
+
+src/ │ ├── app/              → Classe Main e menus principais ├── model/            → Entidades (Livro, Cliente, Pedido, Carrinho…) ├── repository/       → Camada de dados e persistência ├── service/          → Lógica de negócio (Catálogo, Login, Carrinho…) └── util/             → Utilitários (persistência, validações)
