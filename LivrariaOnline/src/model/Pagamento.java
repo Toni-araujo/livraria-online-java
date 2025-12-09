@@ -1,5 +1,4 @@
-// model/Pagamento.java (nova classe)
-package model;
+package model; // ATUALIZADO EM 09/12/2025
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -8,16 +7,11 @@ public class Pagamento implements Serializable {
     private static final long serialVersionUID = 1L;
     
     public enum MetodoPagamento {
-        CARTAO_CREDITO,
-        PIX,
-        BOLETO
+        CARTAO_CREDITO, PIX, BOLETO
     }
     
     public enum StatusPagamento {
-        PENDENTE,
-        APROVADO,
-        RECUSADO,
-        CANCELADO
+        PENDENTE, APROVADO, RECUSADO
     }
     
     private String id;
@@ -25,9 +19,7 @@ public class Pagamento implements Serializable {
     private double valor;
     private MetodoPagamento metodo;
     private StatusPagamento status;
-    private LocalDateTime dataPagamento;
-    private String codigoPix; // Para pagamentos via PIX
-    private String ultimosDigitosCartao; // Para pagamentos com cartão
+    private LocalDateTime data;
     
     public Pagamento(String pedidoId, double valor, MetodoPagamento metodo) {
         this.id = "PAY" + System.currentTimeMillis();
@@ -35,20 +27,14 @@ public class Pagamento implements Serializable {
         this.valor = valor;
         this.metodo = metodo;
         this.status = StatusPagamento.PENDENTE;
-        this.dataPagamento = LocalDateTime.now();
-        
-        if (metodo == MetodoPagamento.PIX) {
-            // Gerar código PIX fake (em sistema real seria um QR code)
-            this.codigoPix = "00020126580014BR.GOV.BCB.PIX0136" + 
-                            System.currentTimeMillis() + "5204000053039865404" + 
-                            String.format("%.2f", valor) + "5802BR5925LIVRARIA ONLINE 6009SAO PAULO62070503***6304";
-        }
+        this.data = LocalDateTime.now();
     }
     
-    // Método para simular processamento do pagamento
+    // NOVO: Método para processar pagamento
     public boolean processarPagamento(String dadosPagamento) {
         try {
-            Thread.sleep(1000); // Simula delay de processamento
+            // Simula delay de processamento
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -56,50 +42,24 @@ public class Pagamento implements Serializable {
         // Simulação: 90% de chance de aprovação
         boolean aprovado = Math.random() > 0.1;
         
-        if (aprovado) {
-            this.status = StatusPagamento.APROVADO;
-            
-            if (this.metodo == MetodoPagamento.CARTAO_CREDITO) {
-                // Guarda últimos 4 dígitos
-                if (dadosPagamento.length() >= 4) {
-                    this.ultimosDigitosCartao = dadosPagamento.substring(dadosPagamento.length() - 4);
-                }
-            }
-            
-            return true;
-        } else {
-            this.status = StatusPagamento.RECUSADO;
-            return false;
-        }
+        this.status = aprovado ? StatusPagamento.APROVADO : StatusPagamento.RECUSADO;
+        return aprovado;
     }
     
-    // Método para gerar comprovante
+    // NOVO: Gerar comprovante
     public String gerarComprovante() {
-        StringBuilder comprovante = new StringBuilder();
-        comprovante.append("=".repeat(50)).append("\n");
-        comprovante.append("         COMPROVANTE DE PAGAMENTO         \n");
-        comprovante.append("=".repeat(50)).append("\n");
-        comprovante.append("ID do Pagamento: ").append(id).append("\n");
-        comprovante.append("Pedido: ").append(pedidoId).append("\n");
-        comprovante.append("Valor: R$ ").append(String.format("%.2f", valor)).append("\n");
-        comprovante.append("Método: ").append(metodo.toString().replace("_", " ")).append("\n");
-        comprovante.append("Status: ").append(status.toString()).append("\n");
-        comprovante.append("Data: ").append(dataPagamento).append("\n");
-        
-        if (metodo == MetodoPagamento.PIX && codigoPix != null) {
-            comprovante.append("\n--- PIX ---\n");
-            comprovante.append("Código PIX (simulado):\n");
-            comprovante.append(codigoPix.substring(0, 50)).append("...\n");
-            comprovante.append("Copie e cole no app do seu banco!\n");
-        }
-        
-        if (metodo == MetodoPagamento.CARTAO_CREDITO && ultimosDigitosCartao != null) {
-            comprovante.append("\n--- Cartão de Crédito ---\n");
-            comprovante.append("Final: **** **** **** ").append(ultimosDigitosCartao).append("\n");
-        }
-        
-        comprovante.append("=".repeat(50)).append("\n");
-        return comprovante.toString();
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n").append("=".repeat(50)).append("\n");
+        sb.append("         COMPROVANTE DE PAGAMENTO         \n");
+        sb.append("=".repeat(50)).append("\n");
+        sb.append("ID: ").append(id).append("\n");
+        sb.append("Pedido: ").append(pedidoId).append("\n");
+        sb.append("Valor: R$ ").append(String.format("%.2f", valor)).append("\n");
+        sb.append("Método: ").append(metodo.toString()).append("\n");
+        sb.append("Status: ").append(status.toString()).append("\n");
+        sb.append("Data: ").append(data).append("\n");
+        sb.append("=".repeat(50)).append("\n");
+        return sb.toString();
     }
     
     // Getters
@@ -108,13 +68,11 @@ public class Pagamento implements Serializable {
     public double getValor() { return valor; }
     public MetodoPagamento getMetodo() { return metodo; }
     public StatusPagamento getStatus() { return status; }
-    public LocalDateTime getDataPagamento() { return dataPagamento; }
-    public String getCodigoPix() { return codigoPix; }
-    public String getUltimosDigitosCartao() { return ultimosDigitosCartao; }
+    public LocalDateTime getData() { return data; }
     
     @Override
     public String toString() {
-        return String.format("Pagamento %s | %s | R$ %.2f | %s", 
+        return String.format("Pagamento[%s] %s R$%.2f %s", 
                            id, metodo, valor, status);
     }
 }
