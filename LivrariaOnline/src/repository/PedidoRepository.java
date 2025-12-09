@@ -1,4 +1,4 @@
-package repository;
+package repository; // ATUALIZADO EM 09/12/2025
 
 import model.Pedido;
 import util.PersistenceUtil;
