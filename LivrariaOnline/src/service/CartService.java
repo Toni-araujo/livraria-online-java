@@ -1,4 +1,4 @@
-package service;
+package service; // ATUALIZADO EM 09/12/2025
 
 import model.Carrinho;
 import model.Livro;
@@ -12,18 +12,34 @@ public class CartService {
         return new Carrinho(cpf);
     }
 
-    public boolean adicionarAoCarrinho(Carrinho c, String isbn) {
-        Optional<Livro> op = livroRepo.buscarPorIsbn(isbn);
-        if (op.isEmpty()) return false;
-        c.adicionar(op.get());
+    public boolean adicionarAoCarrinho(Carrinho carrinho, String isbn, int quantidade) {
+        Optional<Livro> livroOpt = livroRepo.buscarPorIsbn(isbn);
+        if (livroOpt.isEmpty()) return false;
+        
+        carrinho.adicionar(livroOpt.get(), quantidade);
         return true;
     }
 
-    public boolean removerDoCarrinho(Carrinho c, String isbn) {
-        return c.removerPorIsbn(isbn);
+    public boolean removerDoCarrinho(Carrinho carrinho, String isbn, int quantidade) {
+        Optional<Livro> livroOpt = livroRepo.buscarPorIsbn(isbn);
+        if (livroOpt.isEmpty()) return false;
+        
+        return carrinho.remover(livroOpt.get(), quantidade);
+    }
+    
+    public boolean removerTodosDoCarrinho(Carrinho carrinho, String isbn) {
+        Optional<Livro> livroOpt = livroRepo.buscarPorIsbn(isbn);
+        if (livroOpt.isEmpty()) return false;
+        
+        carrinho.getItens().remove(livroOpt.get());
+        return true;
     }
 
-    public double total(Carrinho c) {
-        return c.total();
+    public double calcularTotal(Carrinho carrinho) {
+        return carrinho.calcularTotal();
+    }
+    
+    public boolean carrinhoVazio(Carrinho carrinho) {
+        return carrinho.estaVazio();
     }
 }
