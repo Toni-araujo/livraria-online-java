@@ -1,4 +1,4 @@
-package app;
+package app; // ATUALIZAÇÃO 09/12/2025
 
 import model.*;
 import service.*;
@@ -251,7 +251,6 @@ public class Main {
         System.out.println(CYAN + "\n=== BUSCAR LIVRO ===" + RESET);
         System.out.println("1. Buscar por ISBN");
         System.out.println("2. Buscar por título");
-        System.out.println("3. Buscar por autor");
         System.out.print(VERDE + "Escolha: " + RESET);
         
         String opcao = sc.nextLine();
@@ -273,13 +272,6 @@ public class Main {
                 System.out.print("Digite parte do título: ");
                 String titulo = sc.nextLine().trim();
                 List<Livro> resultados = catalog.buscarPorTitulo(titulo);
-                exibirResultadosBusca(resultados);
-                break;
-                
-            case "3":
-                System.out.print("Digite o nome do autor: ");
-                String autor = sc.nextLine().trim();
-                resultados = catalog.buscarPorAutor(autor);
                 exibirResultadosBusca(resultados);
                 break;
                 
@@ -450,6 +442,7 @@ public class Main {
     
     // ========== FUNÇÕES DE COMPRA ==========
     
+    @SuppressWarnings("unused")
     private static void finalizarCompra() {
         Cliente cliente = auth.getClienteLogado();
         
@@ -623,6 +616,38 @@ public class Main {
             System.out.println(VERMELHO + "\n❌ PAGAMENTO RECUSADO!" + RESET);
             System.out.println("Tente novamente com outro método.");
         }
+    }
+   
+    private static void verUltimaNotaFiscal() {
+        System.out.println(CYAN + "\n=== NOTA FISCAL DE DEMONSTRAÇÃO ===" + RESET);
+        
+        if (!auth.isLogado()) {
+            System.out.println(VERMELHO + "❌ Faça login primeiro!" + RESET);
+            return;
+        }
+        
+        Cliente cliente = auth.getClienteLogado();
+        
+        // Mostra uma nota fiscal de exemplo
+        System.out.println("Esta é uma demonstração de como ficaria uma nota fiscal:");
+        System.out.println("=".repeat(50));
+        System.out.println("            NOTA FISCAL DE EXEMPLO");
+        System.out.println("=".repeat(50));
+        System.out.println("Número: NF-0001");
+        System.out.println("Data: " + java.time.LocalDateTime.now());
+        System.out.println("Cliente: " + cliente.getNome());
+        System.out.println("CPF: " + cliente.getCpf());
+        System.out.println("Tipo: COMPRA");
+        System.out.println("-".repeat(50));
+        System.out.println("Dom Casmurro x1 = R$ 29,90");
+        System.out.println("1984 x2 = R$ 79,80");
+        System.out.println("-".repeat(50));
+        System.out.println("TOTAL: R$ 109,70");
+        System.out.println("=".repeat(50));
+        System.out.println("Obrigado pela preferência!");
+        System.out.println("=".repeat(50));
+        
+        System.out.println("\n" + VERDE + "✅ Em uma compra real, a nota fiscal seria gerada automaticamente após o pagamento." + RESET);
     }
     
     private static void meusPedidos() {
