@@ -1,5 +1,5 @@
 // service/CheckoutService.java - COM PAGAMENTO
-package service;
+package service;  // ATUALIZADO EM 09/12/2025
 
 import model.*;
 import repository.EstoqueRepository;
@@ -10,66 +10,67 @@ public class CheckoutService {
     private EstoqueRepository estoqueRepo = new EstoqueRepository();
     private PedidoRepository pedidoRepo = new PedidoRepository();
     
-    // Novo: processar checkout com pagamento
-    public Pagamento processarCheckoutComPagamento(Carrinho carrinho, String tipo, Cliente cliente, 
-                                                  Pagamento.MetodoPagamento metodoPagamento, 
-                                                  String dadosPagamento) {
+    // Método principal
+    public NotaFiscal checkout(Carrinho carrinho, String tipo, Cliente cliente) {
         // 1. Verificar estoque
         if (!verificarEstoque(carrinho)) {
             return null;
         }
         
-        // 2. Criar pedido
-        Pedido pedido = criarPedido(carrinho, tipo);
-        
-        // 3. Criar pagamento
-        Pagamento pagamento = new Pagamento(pedido.getId(), carrinho.calcularTotal(), metodoPagamento);
-        
-        // 4. Processar pagamento (simulado)
-        boolean pagamentoAprovado = pagamento.processarPagamento(dadosPagamento);
-        
-        if (!pagamentoAprovado) {
-            System.out.println("❌ Pagamento recusado! Tente outro método.");
-            return pagamento;
-        }
-        
-        // 5. Se pagamento aprovado, finalizar compra
+        // 2. Reduzir estoque
         reduzirEstoque(carrinho);
-        pedidoRepo.salvar(pedido);
-        carrinho.limpar();
         
-        // 6. Gerar Nota Fiscal
+        // 3. Criar pedido
+        Pedido pedido = new Pedido(carrinho.getClienteCpf(), carrinho.getItens(), tipo); // esta linha ainda continua com x
+        
+        // 4. Salvar pedido
+        pedidoRepo.salvar(pedido);
+        
+        // 5. Gerar Nota Fiscal
         NotaFiscal notaFiscal = new NotaFiscal(pedido, cliente, tipo);
         
-        System.out.println("\n" + notaFiscal.imprimir());
-        System.out.println(pagamento.gerarComprovante());
-        
-        return pagamento;
+        return notaFiscal;
     }
     
-    // Método antigo (mantido para compatibilidade)
-    public NotaFiscal checkout(Carrinho carrinho, String tipo, Cliente cliente) {
-        if (!verificarEstoque(carrinho)) {
-            return null;
+    // Método para checkout com pagamento
+    public boolean checkoutComPagamento(Carrinho carrinho, String tipo, Cliente cliente, 
+                                       Pagamento.MetodoPagamento metodo) {
+        
+        NotaFiscal notaFiscal = checkout(carrinho, tipo, cliente);
+        
+        if (notaFiscal == null) {
+            return false;
         }
         
-        reduzirEstoque(carrinho);
-        Pedido pedido = criarPedido(carrinho, tipo);
-        pedidoRepo.salvar(pedido);
-        carrinho.limpar();
+        // Cria pagamento
+        Pagamento pagamento = new Pagamento(
+            notaFiscal.getPedido().getId(),
+            carrinho.calcularTotal(), // esta linha ainda continua com x
+            metodo
+        );
         
-        return new NotaFiscal(pedido, cliente, tipo);
+        // Processa pagamento
+        boolean aprovado = pagamento.processarPagamento("");
+        
+        if (aprovado) {
+            System.out.println(notaFiscal.imprimir());
+            System.out.println(pagamento.gerarComprovante());
+            carrinho.limpar(); // esta linha ainda continua com x
+            return true;
+        } else {
+            System.out.println("❌ Pagamento recusado!");
+            return false;
+        }
     }
     
     private boolean verificarEstoque(Carrinho carrinho) {
-        for (Map.Entry<Livro, Integer> entry : carrinho.getItens().entrySet()) {
+        for (Map.Entry<Livro, Integer> entry : carrinho.getItens().entrySet()) { // esta linha ainda continua com x
             Livro livro = entry.getKey();
-            int quantidadeDesejada = entry.getValue();
-            int estoqueDisponivel = estoqueRepo.getQuantidade(livro.getIsbn());
+            int quantidade = entry.getValue();
+            int estoque = estoqueRepo.getQuantidade(livro.getIsbn());
             
-            if (estoqueDisponivel < quantidadeDesejada) {
-                System.out.println("Estoque insuficiente para: " + livro.getTitulo());
-                System.out.println("Desejado: " + quantidadeDesejada + " | Disponível: " + estoqueDisponivel);
+            if (estoque < quantidade) {
+                System.out.println("Estoque insuficiente: " + livro.getTitulo());
                 return false;
             }
         }
@@ -77,14 +78,10 @@ public class CheckoutService {
     }
     
     private void reduzirEstoque(Carrinho carrinho) {
-        for (Map.Entry<Livro, Integer> entry : carrinho.getItens().entrySet()) {
+        for (Map.Entry<Livro, Integer> entry : carrinho.getItens().entrySet()) { // esta linha ainda continua com x
             Livro livro = entry.getKey();
             int quantidade = entry.getValue();
             estoqueRepo.reduzir(livro.getIsbn(), quantidade);
         }
-    }
-    
-    private Pedido criarPedido(Carrinho carrinho, String tipo) {
-        return new Pedido(carrinho.getClienteCpf(), carrinho.getItens(), tipo);
     }
 }
