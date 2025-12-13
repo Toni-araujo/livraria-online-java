@@ -1,4 +1,4 @@
-package app; // ATUALIZAÇÃO 09/12/2025
+package app; // ATUALIZAÇÃO 09/12/2025  ||  (ATUALIZAÇÃO RECENTE - 13/12/2025)
 
 import model.*;
 import service.*;
@@ -14,6 +14,9 @@ public class Main {
     private static CheckoutService checkout = new CheckoutService();
     private static ReportService reports = new ReportService();
     private static AuthService auth = new AuthService();
+    
+ // ADICIONE ESTA LINHA:
+    private static Carrinho carrinhoAtual = null;
     
     // Cor para terminal (opcional - deixa mais bonito)
     private static final String RESET = "\u001B[0m";
@@ -248,35 +251,78 @@ public class Main {
     }
     
     private static void buscarLivro() {
-        System.out.println(CYAN + "\n=== BUSCAR LIVRO ===" + RESET);
-        System.out.println("1. Buscar por ISBN");
-        System.out.println("2. Buscar por título");
-        System.out.print(VERDE + "Escolha: " + RESET);
+        boolean buscando = true;
         
-        String opcao = sc.nextLine();
-        
-        switch (opcao) {
-            case "1":
-                System.out.print("Digite o ISBN: ");
-                String isbn = sc.nextLine().trim();
-                Optional<Livro> livro = catalog.buscarPorIsbn(isbn);
-                
-                if (livro.isPresent()) {
-                    exibirDetalhesLivro(livro.get());
-                } else {
-                    System.out.println(VERMELHO + "Livro não encontrado!" + RESET);
-                }
-                break;
-                
-            case "2":
-                System.out.print("Digite parte do título: ");
-                String titulo = sc.nextLine().trim();
-                List<Livro> resultados = catalog.buscarPorTitulo(titulo);
-                exibirResultadosBusca(resultados);
-                break;
-                
-            default:
-                System.out.println(VERMELHO + "Opção inválida!" + RESET);
+        while (buscando) {
+            System.out.println(CYAN + "\n=== BUSCAR LIVRO ===" + RESET);
+            System.out.println("1. Buscar por ISBN");
+            System.out.println("2. Buscar por título");
+            System.out.println("0. ↩️  Voltar ao menu");
+            System.out.print(VERDE + "Escolha: " + RESET);
+            
+            String opcao = sc.nextLine();
+            
+            switch (opcao) {
+                case "1":
+                    System.out.print("Digite o ISBN (ou 'voltar'): ");
+                    String isbn = sc.nextLine().trim();
+                    
+                    if (isbn.equalsIgnoreCase("voltar")) {
+                        System.out.println("Voltando...");
+                        break;
+                    }
+                    
+                    Optional<Livro> livro = catalog.buscarPorIsbn(isbn);
+                    
+                    if (livro.isPresent()) {
+                        exibirDetalhesLivro(livro.get());
+                        
+                        // Pergunta se quer fazer outra busca
+                        System.out.print("\nDeseja fazer outra busca? (S/N): ");
+                        String continuar = sc.nextLine().trim();
+                        if (!continuar.equalsIgnoreCase("S")) {
+                            buscando = false;
+                        }
+                    } else {
+                        System.out.println(VERMELHO + "Livro não encontrado!" + RESET);
+                        System.out.print("Tentar novamente? (S/N): ");
+                        String tentar = sc.nextLine().trim();
+                        if (!tentar.equalsIgnoreCase("S")) {
+                            buscando = false;
+                        }
+                    }
+                    break;
+                    
+                case "2":
+                    System.out.print("Digite parte do título (ou 'voltar'): ");
+                    String titulo = sc.nextLine().trim();
+                    
+                    if (titulo.equalsIgnoreCase("voltar")) {
+                        System.out.println("Voltando...");
+                        break;
+                    }
+                    
+                    List<Livro> resultados = catalog.buscarPorTitulo(titulo);
+                    exibirResultadosBusca(resultados);
+                    
+                    // Se não encontrou, pergunta se quer continuar
+                    if (resultados.isEmpty()) {
+                        System.out.print("\nDeseja tentar outra busca? (S/N): ");
+                        String outra = sc.nextLine().trim();
+                        if (!outra.equalsIgnoreCase("S")) {
+                            buscando = false;
+                        }
+                    }
+                    break;
+                    
+                case "0":
+                    buscando = false;
+                    System.out.println("Voltando ao menu...");
+                    break;
+                    
+                default:
+                    System.out.println(VERMELHO + "Opção inválida! Digite 1, 2 ou 0." + RESET);
+            }
         }
     }
     
@@ -323,6 +369,11 @@ public class Main {
     
     private static void gerenciarCarrinho() {
         Cliente cliente = auth.getClienteLogado();
+     // Se não tem carrinho ou carrinho de outro cliente, cria novo
+        if (carrinhoAtual == null || !carrinhoAtual.getClienteCpf().equals(cliente.getCpf())) {
+            carrinhoAtual = cartService.criarCarrinho(cliente.getCpf());
+        }
+        
         Carrinho carrinho = cartService.criarCarrinho(cliente.getCpf());
         
         boolean noCarrinho = true;
@@ -447,6 +498,25 @@ public class Main {
         Cliente cliente = auth.getClienteLogado();
         
         System.out.println(CYAN + "\n=== FINALIZAR COMPRA ===" + RESET);
+     // Usa carrinho existente ou cria novo
+        if (carrinhoAtual == null || !carrinhoAtual.getClienteCpf().equals(cliente.getCpf())) {
+            carrinhoAtual = cartService.criarCarrinho(cliente.getCpf());
+        }
+        
+        // Se carrinho já tem itens, pergunta se quer usar ou começar novo
+        if (!carrinhoAtual.estaVazio()) {
+            System.out.println("Seu carrinho atual tem " + carrinhoAtual.getItens().size() + " item(ns).");
+            System.out.print("Deseja: 1-Usar este carrinho  2-Começar novo carrinho  3-Voltar: ");
+            String escolha = sc.nextLine().trim();
+            
+            if (escolha.equals("2")) {
+                carrinhoAtual = cartService.criarCarrinho(cliente.getCpf());
+                carrinhoAtual.limpar();
+            } else if (escolha.equals("3")) {
+                return;
+            }
+            // Se escolher 1, continua com carrinho atual
+        }
         
         // Criar carrinho temporário
         Carrinho carrinho = cartService.criarCarrinho(cliente.getCpf());
@@ -655,10 +725,17 @@ public class Main {
         
         System.out.println(CYAN + "\n=== MEUS PEDIDOS ===" + RESET);
         
+     // DEBUG: Mostra o que está sendo buscado
+        System.out.println("[DEBUG] Buscando pedidos para CPF: " + cliente.getCpf());
+        
         List<Pedido> todosPedidos = reports.relatorioVendas();
+        System.out.println("[DEBUG] Total de pedidos no sistema: " + todosPedidos.size());
+        
         List<Pedido> meusPedidos = todosPedidos.stream()
             .filter(pedido -> pedido.getClienteCpf().equals(cliente.getCpf()))
             .toList();
+        
+        System.out.println("[DEBUG] Meus pedidos encontrados: " + meusPedidos.size());
         
         if (meusPedidos.isEmpty()) {
             System.out.println("📭 Você ainda não realizou nenhum pedido.");
@@ -669,7 +746,7 @@ public class Main {
             
             for (int i = 0; i < meusPedidos.size(); i++) {
                 Pedido pedido = meusPedidos.get(i);
-                System.out.printf("%d. Pedido #%s\n", i + 1, pedido.getId().substring(0, 8));
+                System.out.printf("%d. Pedido #%s\n", i + 1, pedido.getId());
                 System.out.printf("   Data: %s\n", pedido.getDataHora().toLocalDate());
                 System.out.printf("   Total: R$ %.2f\n", pedido.getTotal());
                 System.out.printf("   Itens: %d livro(s)\n", pedido.getItens().size());
