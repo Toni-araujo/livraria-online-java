@@ -90,7 +90,7 @@ LivrariaOnline/
 
 ### ToniJosué Barbosa de Araújo
 - **Curso:** Tecnologia em Telemática
-- **GitHub:** [@TonTec](https://github.com/TonTec)
+- **GitHub:** [@Toni-araujo](https://github.com/Toni-araujo)
 - **Contribuições:** Arquitetura do sistema, serviços principais, lógica de pagamento
 
 ### Samuel Crementino da Costa 
