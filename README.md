@@ -1,4 +1,4 @@
-<img width="493" height="368" alt="Image" src="https://github.com/user-attachments/assets/c591b443-9db2-4ebd-a34f-af33ae45c44d" />
+<img width="435" height="332" alt="Image" src="https://github.com/user-attachments/assets/8d878717-6fc7-4c9b-9ca0-b0b4a067f84b" />
 
 # 📚 Livraria Online – Projeto Java (Programação II)
 
