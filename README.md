@@ -9,11 +9,6 @@ Sistema completo de **Livraria Online** desenvolvido em Java, simulando um ambie
 Desenvolvido para a disciplina **Programação II**, com foco em **POO, modularização, camadas e persistência**.
 
 ---
-## 🖼️ Demonstração Visual
-
-| Menu Principal | Catálogo de Livros |
-|----------------|-------------------|
-|<img width="435" height="332" alt="Image" src="https://github.com/user-attachments/assets/8d878717-6fc7-4c9b-9ca0-b0b4a067f84b" /> | <img width="553" height="355" alt="Image" src="https://github.com/user-attachments/assets/d8a6b142-e6d1-4141-8bff-1ca30c029674" /> 
 
 ## ✨ Funcionalidades Principais
 
@@ -90,6 +85,12 @@ LivrariaOnline/
 ├──.gitignore         # Configuração Git
 ├──LICENSE            # Licença MIT
 └──README.md          # Esta documentação
+
+## 🖼️ Demonstração Visual
+
+| Menu Principal | Catálogo de Livros |
+|----------------|-------------------|
+|<img width="435" height="332" alt="Image" src="https://github.com/user-attachments/assets/8d878717-6fc7-4c9b-9ca0-b0b4a067f84b" /> | <img width="553" height="355" alt="Image" src="https://github.com/user-attachments/assets/d8a6b142-e6d1-4141-8bff-1ca30c029674" /> 
 
 ## 👥 Autores
 
