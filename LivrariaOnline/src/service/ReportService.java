@@ -1,4 +1,4 @@
-package service;
+package service; // ATUALIZADO EM 15/12/2025
 
 import repository.EstoqueRepository;
 import repository.PedidoRepository;
@@ -19,6 +19,11 @@ public class ReportService {
     }
 
     public double totalVendas() {
-        return pedidoRepo.listar().stream().mapToDouble(Pedido::getTotal).sum();
+        List<Pedido> pedidos = pedidoRepo.listar();
+        double total = 0;
+        for (Pedido pedido : pedidos) {
+            total += pedido.getTotal();
+        }
+        return total;
     }
 }
