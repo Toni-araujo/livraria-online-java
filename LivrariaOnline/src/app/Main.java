@@ -1,4 +1,4 @@
-package app; // ATUALIZAÇÃO 09/12/2025  ||  (ATUALIZAÇÃO RECENTE - 13/12/2025)
+package app; // ATUALIZAÇÃO 09/12/2025  ||  (ATUALIZAÇÃO RECENTE - 13/12/2025) || (ATUALIZAÇÃO RECENTE - 15/12/2025)
 
 import model.*;
 import service.*;
@@ -15,7 +15,7 @@ public class Main {
     private static ReportService reports = new ReportService();
     private static AuthService auth = new AuthService();
     
- // ADICIONE ESTA LINHA:
+    // ADICIONE ESTA LINHA:
     private static Carrinho carrinhoAtual = null;
     
     // Cor para terminal (opcional - deixa mais bonito)
@@ -237,7 +237,7 @@ public class Main {
             
             for (int i = 0; i < catalogo.size(); i++) {
                 Livro livro = catalogo.get(i);
-                int estoque = catalog.estoque(livro.getIsbn());
+                int estoque = new repository.EstoqueRepository().getQuantidade(livro.getIsbn());
                 String statusEstoque = estoque > 0 ? VERDE + "Disponível" + RESET : VERMELHO + "Esgotado" + RESET;
                 
                 System.out.printf("%d. %s\n", i + 1, livro.getTitulo());
@@ -302,11 +302,11 @@ public class Main {
                         break;
                     }
                     
-                    List<Livro> resultados = catalog.buscarPorTitulo(titulo);
-                    exibirResultadosBusca(resultados);
+                    var res = catalog.buscarPorTitulo(titulo);
+                    exibirResultadosBusca(res);
                     
                     // Se não encontrou, pergunta se quer continuar
-                    if (resultados.isEmpty()) {
+                    if (res.isEmpty()) {
                         System.out.print("\nDeseja tentar outra busca? (S/N): ");
                         String outra = sc.nextLine().trim();
                         if (!outra.equalsIgnoreCase("S")) {
@@ -369,12 +369,11 @@ public class Main {
     
     private static void gerenciarCarrinho() {
         Cliente cliente = auth.getClienteLogado();
-     // Se não tem carrinho ou carrinho de outro cliente, cria novo
+        
+        // CORREÇÃO: Use carrinhoAtual se existir
         if (carrinhoAtual == null || !carrinhoAtual.getClienteCpf().equals(cliente.getCpf())) {
             carrinhoAtual = cartService.criarCarrinho(cliente.getCpf());
         }
-        
-        Carrinho carrinho = cartService.criarCarrinho(cliente.getCpf());
         
         boolean noCarrinho = true;
         
@@ -391,19 +390,19 @@ public class Main {
             
             switch (opcao) {
                 case "1":
-                    adicionarAoCarrinho(carrinho);
+                    adicionarAoCarrinho(carrinhoAtual);  // ← Usa carrinhoAtual
                     break;
                     
                 case "2":
-                    removerDoCarrinho(carrinho);
+                    removerDoCarrinho(carrinhoAtual);    // ← Usa carrinhoAtual
                     break;
                     
                 case "3":
-                    exibirCarrinho(carrinho);
+                    exibirCarrinho(carrinhoAtual);       // ← Usa carrinhoAtual
                     break;
                     
                 case "4":
-                    carrinho.limpar();
+                    carrinhoAtual.limpar();              // ← Usa carrinhoAtual
                     System.out.println(VERDE + "✅ Carrinho limpo!" + RESET);
                     break;
                     
@@ -421,6 +420,15 @@ public class Main {
         System.out.print("ISBN do livro: ");
         String isbn = sc.nextLine().trim();
         
+        // Verifica se livro existe
+        Optional<Livro> livroOpt = catalog.buscarPorIsbn(isbn);
+        if (livroOpt.isEmpty()) {
+            System.out.println(VERMELHO + "❌ Livro não encontrado!" + RESET);
+            return;
+        }
+        
+        Livro livro = livroOpt.get();
+        
         System.out.print("Quantidade: ");
         try {
             int quantidade = Integer.parseInt(sc.nextLine());
@@ -430,10 +438,27 @@ public class Main {
                 return;
             }
             
+            // CORREÇÃO 1: Verifica estoque ANTES de adicionar
+            int estoqueAtual = catalog.estoque(isbn);
+            if (estoqueAtual < quantidade) {
+                System.out.println(VERMELHO + "❌ Estoque insuficiente!" + RESET);
+                System.out.println("Estoque disponível: " + estoqueAtual + " unidades");
+                return;
+            }
+            
+            // CORREÇÃO 2: Verifica se já tem no carrinho
+            int quantidadeNoCarrinho = carrinho.getItens().getOrDefault(livro, 0);
+            if (quantidadeNoCarrinho + quantidade > estoqueAtual) {
+                System.out.println(VERMELHO + "❌ Não há estoque suficiente!" + RESET);
+                System.out.println("Já tem no carrinho: " + quantidadeNoCarrinho);
+                System.out.println("Estoque total disponível: " + estoqueAtual);
+                return;
+            }
+            
             if (cartService.adicionarAoCarrinho(carrinho, isbn, quantidade)) {
                 System.out.println(VERDE + "✅ Livro adicionado ao carrinho!" + RESET);
             } else {
-                System.out.println(VERMELHO + "❌ Livro não encontrado!" + RESET);
+                System.out.println(VERMELHO + "❌ Erro ao adicionar livro!" + RESET);
             }
         } catch (NumberFormatException e) {
             System.out.println(VERMELHO + "Quantidade inválida!" + RESET);
@@ -519,7 +544,8 @@ public class Main {
         }
         
         // Criar carrinho temporário
-        Carrinho carrinho = cartService.criarCarrinho(cliente.getCpf());
+     // Usa o carrinhoAtual que já existe (pode ter itens ou estar vazio)
+        Carrinho carrinho = carrinhoAtual;  // ← NOVA LINHA
         
         System.out.println("Adicione os livros ao carrinho:");
         boolean adicionando = true;
@@ -537,11 +563,25 @@ public class Main {
             try {
                 int quantidade = Integer.parseInt(sc.nextLine());
                 
-                if (cartService.adicionarAoCarrinho(carrinho, isbn, quantidade)) {
-                    System.out.println(VERDE + "✅ Adicionado!" + RESET);
+             // Verifica estoque antes
+                Optional<Livro> livroOpt = catalog.buscarPorIsbn(isbn);
+                if (livroOpt.isPresent()) {
+                    Livro livro = livroOpt.get();
+                    int estoqueAtual = catalog.estoque(isbn);
+                    int quantidadeNoCarrinho = carrinho.getItens().getOrDefault(livro, 0);
+                    
+                    if (estoqueAtual < quantidade) {
+                        System.out.println(VERMELHO + "❌ Estoque insuficiente! Disponível: " + estoqueAtual + RESET);
+                    } else if (quantidadeNoCarrinho + quantidade > estoqueAtual) {
+                        System.out.println(VERMELHO + "❌ Excede estoque disponível!" + RESET);
+                        System.out.println("Já no carrinho: " + quantidadeNoCarrinho + ", Disponível: " + estoqueAtual);
+                    } else if (cartService.adicionarAoCarrinho(carrinho, isbn, quantidade)) {
+                        System.out.println(VERDE + "✅ Adicionado!" + RESET);
+                    }
                 } else {
                     System.out.println(VERMELHO + "❌ Livro não encontrado!" + RESET);
                 }
+                
             } catch (NumberFormatException e) {
                 System.out.println(VERMELHO + "Quantidade inválida!" + RESET);
             }
@@ -652,6 +692,11 @@ public class Main {
                 System.out.println(VERDE + "\n✅ PAGAMENTO APROVADO!" + RESET);
                 System.out.println(VERDE + "✅ COMPRA REALIZADA COM SUCESSO!" + RESET);
                 
+                System.out.println("\n" + CYAN + "=".repeat(60) + RESET);
+                System.out.println(CYAN + "         NOTA FISCAL ELETRÔNICA         " + RESET);
+                System.out.println(CYAN + "=".repeat(60) + RESET);
+                System.out.println(notaFiscal.imprimir());
+                
                 // Gerar comprovante de pagamento
                 System.out.println("\n" + "=".repeat(50));
                 System.out.println("         COMPROVANTE DE PAGAMENTO         ");
@@ -674,6 +719,10 @@ public class Main {
                 
                 System.out.println("=".repeat(50));
                 
+                // 🔧 CORREÇÃO 1: LIMPAR CARRINHO APÓS COMPRA
+                carrinhoAtual.limpar();  // ← LINHA NOVA
+                carrinho.limpar();       // ← LINHA NOVA
+                
                 // Mostrar nota fiscal
                 System.out.print("\nDeseja imprimir a nota fiscal? (S/N): ");
                 String imprimir = sc.nextLine().trim();
@@ -689,7 +738,7 @@ public class Main {
     }
    
     private static void verUltimaNotaFiscal() {
-        System.out.println(CYAN + "\n=== NOTA FISCAL DE DEMONSTRAÇÃO ===" + RESET);
+        System.out.println(CYAN + "\n=== NOTAS FISCAIS ===" + RESET);
         
         if (!auth.isLogado()) {
             System.out.println(VERMELHO + "❌ Faça login primeiro!" + RESET);
@@ -698,26 +747,56 @@ public class Main {
         
         Cliente cliente = auth.getClienteLogado();
         
-        // Mostra uma nota fiscal de exemplo
-        System.out.println("Esta é uma demonstração de como ficaria uma nota fiscal:");
-        System.out.println("=".repeat(50));
-        System.out.println("            NOTA FISCAL DE EXEMPLO");
-        System.out.println("=".repeat(50));
-        System.out.println("Número: NF-0001");
-        System.out.println("Data: " + java.time.LocalDateTime.now());
-        System.out.println("Cliente: " + cliente.getNome());
-        System.out.println("CPF: " + cliente.getCpf());
-        System.out.println("Tipo: COMPRA");
-        System.out.println("-".repeat(50));
-        System.out.println("Dom Casmurro x1 = R$ 29,90");
-        System.out.println("1984 x2 = R$ 79,80");
-        System.out.println("-".repeat(50));
-        System.out.println("TOTAL: R$ 109,70");
-        System.out.println("=".repeat(50));
-        System.out.println("Obrigado pela preferência!");
-        System.out.println("=".repeat(50));
+        // Buscar pedidos do cliente
+        List<Pedido> todosPedidos = reports.relatorioVendas();
         
-        System.out.println("\n" + VERDE + "✅ Em uma compra real, a nota fiscal seria gerada automaticamente após o pagamento." + RESET);
+        if (todosPedidos.isEmpty()) {
+            System.out.println("📭 Nenhum pedido no sistema.");
+            return;
+        }
+        
+        List<Pedido> meusPedidos = todosPedidos.stream()
+            .filter(p -> p.getClienteCpf().equals(cliente.getCpf()))
+            .toList();
+        
+        if (meusPedidos.isEmpty()) {
+            System.out.println("📭 Você ainda não realizou nenhuma compra.");
+            return;
+        }
+        
+        System.out.println("📋 Você tem " + meusPedidos.size() + " pedido(s):");
+        System.out.println("-".repeat(60));
+        
+        for (int i = 0; i < meusPedidos.size(); i++) {
+            Pedido pedido = meusPedidos.get(i);
+            System.out.println((i+1) + ". Pedido #" + pedido.getId());
+            System.out.println("   Data: " + pedido.getDataHora().toLocalDate());
+            System.out.println("   Total: R$ " + String.format("%.2f", pedido.getTotal()));
+            System.out.println("   Itens: " + pedido.getItens().size());
+            System.out.println("-".repeat(60));
+        }
+        
+        System.out.print("\nVer detalhes de qual pedido? (número ou 0 para voltar): ");
+        String escolhaStr = sc.nextLine().trim();
+        
+        if (escolhaStr.equals("0")) {
+            return;
+        }
+        
+        try {
+            int escolha = Integer.parseInt(escolhaStr);
+            if (escolha > 0 && escolha <= meusPedidos.size()) {
+                Pedido pedidoSelecionado = meusPedidos.get(escolha - 1);
+                
+                // Criar e mostrar nota fiscal REAL
+                NotaFiscal nota = new NotaFiscal(pedidoSelecionado, cliente, "COMPRA");
+                System.out.println(nota.imprimir());
+            } else {
+                System.out.println(VERMELHO + "❌ Número inválido!" + RESET);
+            }
+        } catch (NumberFormatException e) {
+            System.out.println(VERMELHO + "❌ Digite um número válido!" + RESET);
+        }
     }
     
     private static void meusPedidos() {
@@ -848,7 +927,24 @@ public class Main {
     private static void carregarDadosExemplo() {
         System.out.println(AMARELO + "\nCarregando dados de exemplo..." + RESET);
         
-        // Criar alguns livros de exemplo
+     // VERIFICA SE JÁ TEM DADOS ANTES DE ADICIONAR
+        List<Livro> livrosExistentes = catalog.listarCatalogo();
+        if (!livrosExistentes.isEmpty()) {
+            System.out.println(CYAN + "📚 Dados já existentes encontrados. Pulando criação..." + RESET);
+            return;
+        }
+        
+        // ====== ADICIONE ESTE BLOCO PARA O LIVRO DO PROFESSOR ======
+        Autor autorJava = new Autor("Cay S. Horstmann", "horstmann@email.com");
+        Livro livroJava = new Livro("9788555190599", 
+                                   "Desbravando Java e Orientação a Objetos", 
+                                   89.90, "Programação");
+        livroJava.addAutor(autorJava);
+        catalog.cadastrarLivro(livroJava, 20);
+         
+        // ===========================================================
+        
+        // Criar alguns livros de exemplo (MANTENHA O RESTO IGUAL)
         Autor autor1 = new Autor("Machado de Assis", "machado@email.com");
         Autor autor2 = new Autor("Clarice Lispector", "clarice@email.com");
         Autor autor3 = new Autor("George Orwell", "orwell@email.com");
@@ -873,9 +969,11 @@ public class Main {
         // Criar alguns clientes de exemplo
         auth.cadastrar("12345678901", "João Silva", "joao@email.com", "senha123");
         auth.cadastrar("98765432100", "Maria Santos", "maria@email.com", "senha456");
+        auth.cadastrar("99988877766", "Aluno Teste", "teste@email.com", "1234");
         
         System.out.println(VERDE + "✅ Dados de exemplo carregados com sucesso!" + RESET);
-        System.out.println("• 4 livros cadastrados no catálogo");
-        System.out.println("• 2 clientes de exemplo disponíveis para login");
+        System.out.println("• 5 livros cadastrados no catálogo");
+        System.out.println("✨ Incluindo 'Desbravando Java e Orientação a Objetos'");
+        System.out.println("• 3 clientes de exemplo disponíveis para login");
     }
-}
+                        }
