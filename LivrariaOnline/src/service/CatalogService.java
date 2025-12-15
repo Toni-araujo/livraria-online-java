@@ -1,9 +1,8 @@
-package service; // ATUALIZADO EM 09/12/2025
+package service; // ATUALIZADO EM 15/12/2025
 
 import model.Livro;
 import repository.LivroRepository;
 import repository.EstoqueRepository;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +31,7 @@ public class CatalogService {
         return livroRepo.remover(isbn);
     }
 
+    // 🔥 MÉTODO CRÍTICO - DEVE PEGAR DO ESTOQUE ATUALIZADO
     public int estoque(String isbn) {
         return estoqueRepo.getQuantidade(isbn);
     }
