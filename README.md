@@ -162,9 +162,34 @@ LivrariaOnline/
 ## 📋 Modelo de Trabalho
 
 O projeto foi desenvolvido seguindo metodologia de **desenvolvimento colaborativo**:
-- **ToniJosué**: Responsável pelo desenvolvimento técnico principal
-- **Samuel**: Atuou como revisor e validador dos requisitos
-- **Ambos**: Participaram das definições de arquitetura e testes finais
+
+| Área | Responsável Principal | Contribuição |
+|------|---------------------|-------------|
+| Arquitetura & Design | ToniJosué | Samuel (revisão) |
+| Implementação Core | ToniJosué | - |
+| Interface & UX | ToniJosué | Samuel (feedback) |
+| Testes & Validação | ToniJosué | Samuel (testes aux.) |
+| Documentação | Ambos | - |
+
+**Fluxo de trabalho:**
+1. **ToniJosué** desenvolvia as funcionalidades
+2. **Samuel** revisava o código e documentação
+3. Ambos validavam os requisitos juntos
+4. Revisão final colaborativa
+
+---
+
+## 🎬 Demonstração Rápida
+
+Para apresentação, recomendamos este fluxo (5-7 minutos):
+
+1. **Login** com cliente exemplo (CPF: `99988877766`, Senha: `1234`)
+2. **Ver catálogo** (5 livros, destaque para referência da disciplina)
+3. **Buscar livro** por "Java"
+4. **Adicionar ao carrinho** com controle de estoque
+5. **Finalizar compra** com PIX
+6. **Gerar nota fiscal** e comprovante
+7. **Ver relatórios** de vendas e estoque
 
 ---
 
@@ -173,3 +198,15 @@ O projeto foi desenvolvido seguindo metodologia de **desenvolvimento colaborativ
 Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
 *Projeto desenvolvido como trabalho acadêmico para a disciplina de Programação II do curso de Tecnologia em Telemática.*
+
+## 🙏 Agradecimentos
+
+- **Professor Elmano Ramalho Cavalcanti** pela orientação e referências bibliográficas
+- **Colegas de turma** pelo compartilhamento de conhecimento
+- **Comunidade Java** pelos recursos e boas práticas
+
+**"O conhecimento é a única coisa que não pode ser tirada de você."**
+
+---
+
+**✨ Projeto concluído e pronto para avaliação!** 🎓🚀
